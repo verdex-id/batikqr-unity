@@ -1,0 +1,21 @@
+# Unity generated files
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Aa]sset[Ss]tore/
+
+# Visual Studio/Rider files
+.vs/
+*.csproj
+*.unityproj
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Unity Package Manager (UPM) local files (optional)
+# Anda mungkin ingin menyertakan UPM untuk kolaborasi, tapi secara umum diabaikan.
+# Packages/

@@ -1,0 +1,2 @@
+C:\Users\MyBook Hype AMD\Projects\Object Mapping\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\CMakeLists.txt
+C:\Users\MyBook Hype AMD\Projects\Object Mapping\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\GameActivity\CMakeLists.txt
