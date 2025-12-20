@@ -1,0 +1,175 @@
+:root {
+}
+
+:root {
+    --bg-color: rgb(5, 10, 24);
+    --input-bg-color: rgb(17, 22, 37);
+    --accent-color: rgb(59, 130, 246);
+    --text-white: rgb(255, 255, 255);
+    --text-grey: rgb(156, 163, 175);
+    --border-radius: 12px;
+}
+
+.main-container {
+    flex-grow: 1;
+    background-color: var(--bg-color);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.content-wrapper {
+    width: 100%;
+    max-width: 400px;
+    align-items: center;
+}
+
+.logo-container {
+    width: 80px;
+    height: 80px;
+    background-color: rgb(18, 24, 46);
+    border-radius: 20px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    border-width: 1px;
+    border-color: rgb(42, 50, 80);
+}
+
+.logo-icon {
+    width: 40px;
+    height: 40px;
+    background-image: url("project://database/Assets/verdex.png?fileID=2800000&guid=1de24e1995915b04d8f84a330999ad40&type=3#verdex");
+    border-radius: 8px;
+}
+
+.title-text {
+    font-size: 28px;
+    color: var(--text-white);
+    -unity-font-style: bold;
+    margin-bottom: 10px;
+    -unity-text-align: middle-center;
+}
+
+.subtitle-text {
+    font-size: 14px;
+    color: var(--text-grey);
+    white-space: normal;
+    -unity-text-align: middle-center;
+    margin-bottom: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.input-group {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.input-label {
+    font-size: 14px;
+    color: var(--text-white);
+    -unity-font-style: bold;
+    margin-bottom: 8px;
+    margin-left: 4px;
+}
+
+.input-field-container {
+    flex-direction: row;
+    background-color: var(--input-bg-color);
+    border-radius: var(--border-radius);
+    height: 50px;
+    align-items: center;
+    padding-left: 15px;
+    border-width: 1px;
+    border-color: rgb(31, 41, 55);
+}
+
+.input-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    opacity: 0.5;
+}
+
+.transparent-input {
+    flex-grow: 1;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    margin: 0;
+    padding: 0;
+    color: var(--text-white);
+    font-size: 14px;
+}
+
+.transparent-input > .unity-base-text-field__input {
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    color: var(--text-white);
+}
+
+.primary-button {
+    width: 100%;
+    height: 50px;
+    background-color: var(--accent-color);
+    border-radius: var(--border-radius);
+    color: var(--text-white);
+    font-size: 16px;
+    -unity-font-style: bold;
+    border-width: 0;
+    margin-top: 10px;
+    transition-duration: 0.2s;
+}
+
+.primary-button:hover {
+    background-color: rgb(37, 99, 235);
+    scale: 1.02;
+}
+
+.primary-button:active {
+    background-color: rgb(29, 78, 216);
+    scale: 0.98;
+}
+
+.version-text {
+    position: absolute;
+    bottom: 20px;
+    color: rgb(75, 85, 99);
+    font-size: 12px;
+}
+
+.icon-npm {
+    background-image: url("project://database/Assets/icons/solar--hashtag-square-outline.png?fileID=2800000&guid=a9cbd6950cd1e884b9652cb119716708&type=3#solar--hashtag-square-outline");
+}
+
+.icon-user {
+    background-image: url("project://database/Assets/icons/solar--user-id-outline.png?fileID=2800000&guid=f4a506c449013134bb3589d24d270e55&type=3#solar--user-id-outline");
+}
+
+.logo-container {
+    width: 100%;
+    height: 80px;
+    background-color: rgb(18, 24, 46);
+    border-radius: 20px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    border-width: 1px;
+    border-color: rgb(42, 50, 80);
+}
+
+.logo-icon {
+    width: 40px;
+    height: 40px;
+    background-image: url('project:/Assets/verdex.png');
+    border-radius: 8px;
+}
+
+#LoginStatus {
+    background-color: rgb(0, 255, 128);
+    color: rgba(0, 0, 0, 1);
+    -unity-font-style: bold;
+    padding: 10px;
+    border-radius: 8px;
+    width: 100%;
+}

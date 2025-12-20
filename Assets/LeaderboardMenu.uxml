@@ -1,0 +1,38 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/LeaderboardUSS.uss?fileID=7433441132597879392&amp;guid=e7b340f36962da34b91f404b013c79cd&amp;type=3#LeaderboardUSS" />
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    
+    <ui:Style src="LeaderboardStyle.uss" />
+
+    <ui:VisualElement class="main-container">
+        
+        <ui:VisualElement class="header">
+            <ui:Button text="<" name="BackButton" class="back-button" />
+            
+            <ui:VisualElement style="flex-grow: 1; justify-content: center;">
+                <ui:Label text="Leaderboard" class="title-text" />
+                <ui:Label text="BATIK SCAN ATTENDANCE" class="subtitle-text" />
+            </ui:VisualElement>
+            
+            <ui:VisualElement class="header-placeholder" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="content-wrapper">
+            
+            <ui:VisualElement class="leaderboard-header">
+                <ui:Label text="RANK" class="col-header col-rank" />
+                <ui:Label text="ID" class="col-header col-id" />
+                <ui:Label text="NAME" class="col-header col-name" />
+                <ui:Label text="TIME" class="col-header col-time" />
+            </ui:VisualElement>
+
+            <ui:ScrollView class="leaderboard-list" name="LeaderboardList" show-vertical-scroller="false">
+                </ui:ScrollView>
+
+        </ui:VisualElement>
+        
+        <ui:Label text="V 1.0.0" style="position: absolute; bottom: 10px; width: 100%; -unity-text-align: middle-center; color: #333; font-size: 10px;" />
+
+    </ui:VisualElement>
+</ui:UXML>
+</ui:UXML>

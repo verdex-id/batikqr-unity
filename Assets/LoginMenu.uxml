@@ -1,0 +1,34 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/LoginMenuUSS.uss?fileID=7433441132597879392&amp;guid=080f90ec84ea8e1479cd39feeb66d2f6&amp;type=3#LoginMenuUSS" />
+    <ui:VisualElement class="main-container">
+        <ui:VisualElement name="VisualElement" class="content-wrapper">
+            <ui:VisualElement class="banner-container">
+                <ui:VisualElement class="banner-image" />
+            </ui:VisualElement>
+            <ui:VisualElement class="logo-container">
+                <ui:VisualElement class="logo-icon" />
+            </ui:VisualElement>
+            <ui:Label text="Masuk" class="title-text" />
+            <ui:Label text="Halo, Silahkan masukkan NPM dan Nama Lengkap kamu" class="subtitle-text" />
+            <ui:Label name="LoginStatus" text="Test Status" class="subtitle-text" />
+            <ui:VisualElement style="height: 30px;" />
+            <ui:VisualElement class="input-group">
+                <ui:Label text="NPM" class="input-label" />
+                <ui:VisualElement class="input-field-container">
+                    <ui:VisualElement class="input-icon icon-npm" />
+                    <ui:TextField name="NPMInput" placeholder-text="Enter your NPM" class="transparent-input" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement class="input-group">
+                <ui:Label text="Name" class="input-label" />
+                <ui:VisualElement class="input-field-container">
+                    <ui:VisualElement class="input-icon icon-user" />
+                    <ui:TextField name="NameInput" placeholder-text="Enter your name" class="transparent-input" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement style="height: 20px;" />
+            <ui:Button text="Login" name="LoginButton" class="primary-button" />
+        </ui:VisualElement>
+        <ui:Label text="V 1.0.0" class="version-text" />
+    </ui:VisualElement>
+</ui:UXML>
