@@ -16,7 +16,7 @@ public class LeaderboardManager : MonoBehaviour
 {
     // Nama UXML element dari LeaderboardScreen.uxml
     private const string ListName = "LeaderboardList";
-    private const string PatternLabelName = "PatternCodeLabel";
+    private const string PatternLabelName = "PatternLabel";
 
     // Referensi ke root VisualElement
     private VisualElement _root;
