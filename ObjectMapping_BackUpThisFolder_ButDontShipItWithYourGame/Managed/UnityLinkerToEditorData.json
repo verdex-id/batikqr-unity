@@ -19,6 +19,8 @@
           {
             "name": "NavMeshSettings",
             "scenes": [
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity",
               "Assets/Scenes/SampleScene.unity"
             ],
             "dependencyType": 1,
@@ -65,6 +67,8 @@
           {
             "name": "AudioBehaviour",
             "scenes": [
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity",
               "Assets/Scenes/SampleScene.unity"
             ],
             "dependencyType": 0,
@@ -79,6 +83,8 @@
           {
             "name": "AudioListener",
             "scenes": [
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity",
               "Assets/Scenes/SampleScene.unity"
             ],
             "dependencyType": 0,
@@ -122,6 +128,8 @@
           {
             "name": "Camera",
             "scenes": [
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity",
               "Assets/Scenes/SampleScene.unity"
             ],
             "dependencyType": 0,
@@ -142,6 +150,8 @@
           {
             "name": "Cubemap",
             "scenes": [
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity",
               "Assets/Scenes/SampleScene.unity"
             ],
             "dependencyType": 0,
@@ -162,6 +172,8 @@
           {
             "name": "EditorExtension",
             "scenes": [
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity",
               "Assets/Scenes/SampleScene.unity"
             ],
             "dependencyType": 1,
@@ -176,6 +188,8 @@
           {
             "name": "GameObject",
             "scenes": [
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity",
               "Assets/Scenes/SampleScene.unity"
             ],
             "dependencyType": 0,
@@ -208,6 +222,8 @@
           {
             "name": "LevelGameManager",
             "scenes": [
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity",
               "Assets/Scenes/SampleScene.unity"
             ],
             "dependencyType": 1,
@@ -242,6 +258,8 @@
           {
             "name": "LightmapSettings",
             "scenes": [
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity",
               "Assets/Scenes/SampleScene.unity"
             ],
             "dependencyType": 0,
@@ -262,6 +280,8 @@
           {
             "name": "Material",
             "scenes": [
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity",
               "Assets/Scenes/SampleScene.unity"
             ],
             "dependencyType": 0,
@@ -294,6 +314,8 @@
           {
             "name": "MonoBehaviour",
             "scenes": [
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity",
               "Assets/Scenes/SampleScene.unity"
             ],
             "dependencyType": 0,
@@ -308,6 +330,8 @@
           {
             "name": "MonoScript",
             "scenes": [
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity",
               "Assets/Scenes/SampleScene.unity"
             ],
             "dependencyType": 1,
@@ -316,6 +340,8 @@
           {
             "name": "NamedObject",
             "scenes": [
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity",
               "Assets/Scenes/SampleScene.unity"
             ],
             "dependencyType": 1,
@@ -354,7 +380,8 @@
           {
             "name": "RectTransform",
             "scenes": [
-              "Assets/Scenes/SampleScene.unity"
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity"
             ],
             "dependencyType": 0,
             "icon": null
@@ -368,6 +395,8 @@
           {
             "name": "RenderSettings",
             "scenes": [
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity",
               "Assets/Scenes/SampleScene.unity"
             ],
             "dependencyType": 0,
@@ -400,6 +429,8 @@
           {
             "name": "Shader",
             "scenes": [
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity",
               "Assets/Scenes/SampleScene.unity"
             ],
             "dependencyType": 0,
@@ -426,7 +457,8 @@
           {
             "name": "Sprite",
             "scenes": [
-              "Assets/Scenes/SampleScene.unity"
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity"
             ],
             "dependencyType": 0,
             "icon": null
@@ -925,9 +957,7 @@
         "dependencies": [
           {
             "name": "BoxCollider",
-            "scenes": [
-              "Assets/Scenes/SampleScene.unity"
-            ],
+            "scenes": [],
             "dependencyType": 0,
             "icon": null
           },
@@ -940,7 +970,7 @@
           {
             "name": "Collider",
             "scenes": [],
-            "dependencyType": 1,
+            "dependencyType": 0,
             "icon": null
           },
           {
@@ -953,6 +983,12 @@
             "name": "PhysicsManager",
             "scenes": [],
             "dependencyType": 1,
+            "icon": null
+          },
+          {
+            "name": "Rigidbody",
+            "scenes": [],
+            "dependencyType": 0,
             "icon": null
           },
           {
@@ -1344,8 +1380,16 @@
           {
             "name": "Font",
             "scenes": [
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity",
               "Assets/Scenes/SampleScene.unity"
             ],
+            "dependencyType": 0,
+            "icon": null
+          },
+          {
+            "name": "TextMesh",
+            "scenes": [],
             "dependencyType": 0,
             "icon": null
           },
@@ -1387,7 +1431,8 @@
           {
             "name": "Canvas",
             "scenes": [
-              "Assets/Scenes/SampleScene.unity"
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity"
             ],
             "dependencyType": 0,
             "icon": null
@@ -1401,7 +1446,8 @@
           {
             "name": "CanvasRenderer",
             "scenes": [
-              "Assets/Scenes/SampleScene.unity"
+              "Assets/Scenes/LeaderboardScene.unity",
+              "Assets/Scenes/LoginScene.unity"
             ],
             "dependencyType": 0,
             "icon": null

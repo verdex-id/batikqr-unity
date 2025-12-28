@@ -1,0 +1,14 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/ScanMenuUSS.uss?fileID=7433441132597879392&amp;guid=e45e9be7d457e1a4eaf661bc38cc886d&amp;type=3#ScanMenuUSS" />
+    <ui:VisualElement class="main-container" style="justify-content: space-between;">
+        <ui:VisualElement class="header">
+            <ui:Button text="&lt;" name="BackButton" class="back-button" />
+            <ui:VisualElement style="flex-grow: 1; justify-content: center;">
+                <ui:Label text="Scan Batik QR" class="title-text" />
+            </ui:VisualElement>
+            <ui:VisualElement class="header-placeholder" />
+        </ui:VisualElement>
+        <ui:Label text="Error" name="StatusLabel" style="font-size: 10px; color: rgb(255, 0, 0); -unity-text-outline-width: 0; -unity-text-outline-color: rgb(0, 0, 0);" />
+        <ui:Button text="Leaderboard" name="LeaderboardButton" class="primary-button" />
+    </ui:VisualElement>
+</ui:UXML>

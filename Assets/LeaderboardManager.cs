@@ -1,15 +1,27 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.SceneManagement;
+using UnityEngine.Networking;
+using System.Collections;
 using System.Collections.Generic;
 using System;
 using System.Globalization;
 
-// Struktur data yang mencerminkan tipe 'Presence' dari backend kamu
-public struct PresenceData
+[Serializable]
+public class LeaderboardEntry
 {
+    public int id;
+    public string codes;
+    public long timestamp; // Menggunakan long untuk menampung milidetik
     public string npm;
     public string name;
-    public long timestamp; // Sesuai dengan tipe INTEGER (Timestamp) di DB
+}
+
+[Serializable]
+public class LeaderboardResponse
+{
+    public bool success;
+    public List<LeaderboardEntry> leaderboard; // Nama harus sama dengan "leaderboard" di JSON
 }
 
 public class LeaderboardManager : MonoBehaviour
@@ -17,51 +29,56 @@ public class LeaderboardManager : MonoBehaviour
     // Nama UXML element dari LeaderboardScreen.uxml
     private const string ListName = "LeaderboardList";
     private const string PatternLabelName = "PatternLabel";
+    private const string BackButtonName = "BackButton";
 
     // Referensi ke root VisualElement
     private VisualElement _root;
     private ScrollView _leaderboardList;
     private Label _patternCodeLabel;
+    private Button _backButton;
 
     void OnEnable()
     {
         _root = GetComponent<UIDocument>().rootVisualElement;
         _leaderboardList = _root.Q<ScrollView>(ListName);
         _patternCodeLabel = _root.Q<Label>(PatternLabelName);
+        _backButton = _root.Q<Button>(BackButtonName);
 
-        // Panggil fungsi untuk mengisi data (Ganti dengan Logic Fetching API/DB kamu)
-        PopulateLeaderboard();
+        // Tambah event listener untuk tombol kembali
+        _backButton.clicked += OnBackButtonClicked;
+
+        // Ambil kode pattern dari PlayerPrefs (atau sumber lain)
+        string patternCode = PlayerPrefs.GetString("lastPatternCode", "unknown");
+
+        _patternCodeLabel.text = $"Code {patternCode}";
+
+        StartCoroutine(SendGetRequest(patternCode));
+    }
+
+    private void OnBackButtonClicked()
+    {
+        SceneManager.LoadScene(1);
     }
 
     // Fungsi utama untuk mengambil dan menampilkan data
-    private void PopulateLeaderboard()
+    private void DisplayDataToUI(List<LeaderboardEntry> entries)
     {
-        // --- Langkah 1: Ganti dengan Logic Backend Kamu ---
-        // Di sini kamu akan memanggil API/Service kamu untuk mendapatkan data Presence[]
-        // Contoh: PatternService.getLeaderboard(currentCodes)
+        _leaderboardList.Clear();
 
-        // Data Mock (Contoh data Presence yang sudah diurutkan dari tercepat ke lambat)
-        List<PresenceData> mockData = GetMockLeaderboardData();
+        // Urutkan berdasarkan waktu tercepat (timestamp terkecil)
+        entries.Sort((a, b) => a.timestamp.CompareTo(b.timestamp));
 
-        // --- Langkah 2: Set Pattern Code (Contoh: Ambil dari Current Pattern) ---
-        _patternCodeLabel.text = "Current Pattern Code: 2, 7, 9";
-
-        // --- Langkah 3: Isi List ---
-        _leaderboardList.Clear(); // Bersihkan list sebelum mengisi
-
-        for (int i = 0; i < mockData.Count; i++)
+        for (int i = 0; i < entries.Count; i++)
         {
-            var data = mockData[i];
-            int rank = i + 1; // Rank dimulai dari 1
+            var data = entries[i];
 
-            // Buat VisualElement (Baris) untuk setiap entri
-            VisualElement item = CreateLeaderboardItem(rank, data);
+            VisualElement item = CreateLeaderboardItem(i + 1, data);
             _leaderboardList.Add(item);
         }
     }
 
     // --- BAGIAN INI YANG DISESUAIKAN ---
-    private VisualElement CreateLeaderboardItem(int rank, PresenceData data)
+    private VisualElement CreateLeaderboardItem(int rank, LeaderboardEntry data)
     {
         VisualElement item = new VisualElement();
         item.AddToClassList("leaderboard-item");
@@ -71,53 +88,65 @@ public class LeaderboardManager : MonoBehaviour
 
         // Format Waktu
         DateTimeOffset dto = DateTimeOffset.FromUnixTimeMilliseconds(data.timestamp);
-        string timeString = dto.ToString("HH:mm", CultureInfo.InvariantCulture); // Format jam:menit (07:45)
+        string timeString = dto.ToString("HH:mm:ss", CultureInfo.InvariantCulture); // Format jam:menit:detik (07:45:30)
 
         // 1. Rank Column
         Label rankLabel = new Label(rank.ToString());
         rankLabel.AddToClassList("item-text");
         rankLabel.AddToClassList("rank-col"); // Sesuai USS baru
 
-        // 2. ID Column (DULU "npm-col", SEKARANG "id-col")
-        Label idLabel = new Label(data.npm);
-        idLabel.AddToClassList("item-text");
-        idLabel.AddToClassList("id-col"); // <--- PERUBAHAN DISINI
-
-        // 3. Name Column
+        // 2. Name Column
+        // Max 10 karakter, jika lebih potong dan tambahkan "..."
+        if (data.name.Length > 10)
+        {
+            data.name = data.name.Substring(0, 10) + "...";
+        }
         Label nameLabel = new Label(data.name);
         nameLabel.AddToClassList("item-text");
         nameLabel.AddToClassList("name-col"); // Sesuai USS baru
 
-        // 4. Time Column
+        // 3. Time Column
         Label timeLabel = new Label(timeString);
         timeLabel.AddToClassList("item-text");
         timeLabel.AddToClassList("time-col"); // Sesuai USS baru
 
         // Masukkan ke dalam baris
         item.Add(rankLabel);
-        item.Add(idLabel);
         item.Add(nameLabel);
         item.Add(timeLabel);
 
         return item;
     }
 
-    // Dummy Data untuk Testing UI
-    private List<PresenceData> GetMockLeaderboardData()
+    IEnumerator SendGetRequest(string codes)
     {
-        long now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-        return new List<PresenceData>
+        string url = $"https://batikqr.verdex.id/pattern/leaderboard?codes={codes}";
+
+        using (UnityWebRequest request = UnityWebRequest.Get(url))
         {
-            new PresenceData { npm = "5220411001", name = "Tito", timestamp = now - 5000 },
-            new PresenceData { npm = "5220411002", name = "Zaki", timestamp = now - 4800 },
-            new PresenceData { npm = "5220411003", name = "Saputro", timestamp = now - 4500 },
-            new PresenceData { npm = "5220411004", name = "Sultan", timestamp = now - 4000 },
-            new PresenceData { npm = "5220411040", name = "Akmal", timestamp = now - 3500 }, // Sesuai data test
-            new PresenceData { npm = "5220411006", name = "Ghiffari", timestamp = now - 3000 },
-            new PresenceData { npm = "5220411007", name = "Agil", timestamp = now - 2500 },
-            new PresenceData { npm = "5220411008", name = "Ghani", timestamp = now - 2000 },
-            new PresenceData { npm = "5220411009", name = "Istikmal", timestamp = now - 1500 },
-            new PresenceData { npm = "5220411010", name = "Gita Evodie", timestamp = now - 1000 }
-        };
+            yield return request.SendWebRequest();
+
+            if (request.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError($"[Batik AR] HTTP Error: {request.error}");
+            }
+            else
+            {
+                string jsonResponse = request.downloadHandler.text;
+
+                // Parsing JSON ke Class Wrapper
+                LeaderboardResponse response = JsonUtility.FromJson<LeaderboardResponse>(jsonResponse);
+
+                if (response != null && response.success)
+                {
+                    // Kirim data ke UI
+                    DisplayDataToUI(response.leaderboard);
+                }
+                else
+                {
+                    Debug.LogWarning("API Success but data is empty or success field is false.");
+                }
+            }
+        }
     }
 }

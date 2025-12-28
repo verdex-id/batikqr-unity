@@ -10,14 +10,7 @@
             <ui:VisualElement class="header-placeholder" />
         </ui:VisualElement>
         <ui:VisualElement class="content-wrapper">
-            <ui:VisualElement class="leaderboard-header">
-                <ui:Label text="RANK" class="col-header col-rank" />
-                <ui:Label text="ID" class="col-header col-id" />
-                <ui:Label text="NAME" class="col-header col-name" />
-                <ui:Label text="TIME" class="col-header col-time" />
-            </ui:VisualElement>
             <ui:ScrollView name="LeaderboardList" show-vertical-scroller="false" class="leaderboard-list" />
         </ui:VisualElement>
-        <ui:Label text="V 1.0.0" style="position: absolute; bottom: 10px; width: 100%; -unity-text-align: middle-center; color: rgb(51, 51, 51); font-size: 10px;" />
     </ui:VisualElement>
 </ui:UXML>

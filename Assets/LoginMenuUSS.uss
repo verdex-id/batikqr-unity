@@ -44,7 +44,7 @@
 }
 
 .title-text {
-    font-size: 28px;
+    font-size: 16px;
     color: var(--text-white);
     -unity-font-style: bold;
     margin-bottom: 10px;
@@ -52,7 +52,7 @@
 }
 
 .subtitle-text {
-    font-size: 14px;
+    font-size: 10px;
     color: var(--text-grey);
     white-space: normal;
     -unity-text-align: middle-center;
@@ -63,14 +63,15 @@
 
 .input-group {
     width: 100%;
-    margin-bottom: 15px;
+    margin-bottom: 0;
+    font-size: 10px;
 }
 
 .input-label {
-    font-size: 14px;
+    font-size: 8px;
     color: var(--text-white);
     -unity-font-style: bold;
-    margin-bottom: 8px;
+    margin-bottom: 0;
     margin-left: 4px;
 }
 
@@ -78,11 +79,12 @@
     flex-direction: row;
     background-color: var(--input-bg-color);
     border-radius: var(--border-radius);
-    height: 50px;
+    height: 30px;
     align-items: center;
     padding-left: 15px;
     border-width: 1px;
     border-color: rgb(31, 41, 55);
+    font-size: 10px;
 }
 
 .input-icon {
@@ -90,6 +92,7 @@
     height: 20px;
     margin-right: 10px;
     opacity: 0.5;
+    font-size: 10px;
 }
 
 .transparent-input {
@@ -99,7 +102,7 @@
     margin: 0;
     padding: 0;
     color: var(--text-white);
-    font-size: 14px;
+    font-size: 10px;
 }
 
 .transparent-input > .unity-base-text-field__input {
@@ -110,11 +113,11 @@
 
 .primary-button {
     width: 100%;
-    height: 50px;
+    height: 30px;
     background-color: var(--accent-color);
     border-radius: var(--border-radius);
     color: var(--text-white);
-    font-size: 16px;
+    font-size: 10px;
     -unity-font-style: bold;
     border-width: 0;
     margin-top: 10px;
@@ -161,13 +164,13 @@
 .logo-icon {
     width: 40px;
     height: 40px;
-    background-image: url('project:/Assets/verdex.png');
+    background-image: url("project://database/Assets/verdex.png?fileID=2800000&guid=1de24e1995915b04d8f84a330999ad40&type=3#verdex");
     border-radius: 8px;
 }
 
 #LoginStatus {
     background-color: rgb(0, 255, 128);
-    color: rgba(0, 0, 0, 1);
+    color: rgb(0, 0, 0);
     -unity-font-style: bold;
     padding: 10px;
     border-radius: 8px;

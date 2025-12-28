@@ -6,15 +6,18 @@ using UnityEngine.XR.ARSubsystems;
 using System.Collections;
 using UnityEngine.Networking;
 using System.Text;
+using UnityEngine.UIElements; // Ditambahkan untuk UI
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(ARTrackedImageManager))]
 public class MultiImageTracker : MonoBehaviour
 {
-    // Class helper untuk membuat struktur JSON: { "codes": ["code1", "code2", ...] }
     [System.Serializable]
     public class CodesData
     {
-        public List<string> codes;
+        public string code; // Format: "279"
+        public string npm;
+        public string name;
     }
 
     [System.Serializable]
@@ -26,94 +29,95 @@ public class MultiImageTracker : MonoBehaviour
 
     public List<MarkerPrefab> markerPrefabs = new List<MarkerPrefab>();
     private ARTrackedImageManager trackedImageManager;
-
-    // List untuk menyimpan gambar yang saat ini dilacak
     private List<ARTrackedImage> currentlyTrackedImages = new List<ARTrackedImage>();
 
-    // Variabel untuk HTTP POST
     [Header("Backend Settings")]
-    public string backendURL = "https://api.gprestore.net/not-found";
+    public string backendURL = "https://batikqr.verdex.id/pattern/scan";
     public int requiredCount = 3;
     private bool codesSent = false;
 
     [Header("UI Settings")]
-    public GameObject errorPrefab; // Prefab untuk menampilkan error
+    public GameObject errorPrefab;
+    private VisualElement _root;
+    private Button _leaderboardButton;
+    private Label _statusLabel;
 
-    // --- Unity Lifecycle Methods ---
-
-    void Awake()
-    {
-        trackedImageManager = GetComponent<ARTrackedImageManager>();
-    }
+    void Awake() => trackedImageManager = GetComponent<ARTrackedImageManager>();
 
     void OnEnable()
     {
-        if (trackedImageManager != null)
+        // Inisialisasi UI dengan aman
+        var uiDoc = GetComponent<UIDocument>();
+        if (uiDoc == null)
         {
-            trackedImageManager.trackablesChanged.AddListener(OnChanged);
+            uiDoc = GameObject.FindAnyObjectByType<UIDocument>();
         }
+
+        if (uiDoc != null)
+        {
+            _root = uiDoc.rootVisualElement;
+            _leaderboardButton = _root.Q<Button>("LeaderboardButton");
+            _statusLabel = _root.Q<Label>("StatusLabel");
+        }
+
+        if (trackedImageManager != null)
+            trackedImageManager.trackablesChanged.AddListener(OnChanged);
     }
 
     void OnDisable()
     {
         if (trackedImageManager != null)
-        {
             trackedImageManager.trackablesChanged.RemoveListener(OnChanged);
-        }
     }
 
-    // --- Tracking Logic ---
     void OnChanged(ARTrackablesChangedEventArgs<ARTrackedImage> eventArgs)
     {
-        // === 1. Logika untuk marker yang BARU terdeteksi (Added) ===
+        // 1. ADDED (Sesuai kode lama kamu)
         foreach (var trackedImage in eventArgs.added)
         {
-            currentlyTrackedImages.Add(trackedImage);
-
-            string name = trackedImage.referenceImage.name;
-            foreach (var item in markerPrefabs)
+            if (!currentlyTrackedImages.Contains(trackedImage))
             {
-                if (item.imageName == name)
+                currentlyTrackedImages.Add(trackedImage);
+                string name = trackedImage.referenceImage.name;
+                foreach (var item in markerPrefabs)
                 {
-                    if (trackedImage.transform.childCount == 0)
+                    if (item.imageName == name && trackedImage.transform.childCount == 0)
                     {
-                        Instantiate(item.prefab, trackedImage.transform);
-                        Debug.Log($"[AR Tracker] Added: {name}. Total tracked: {currentlyTrackedImages.Count}");
+                        // 1. Buat objek tanpa rotasi dulu (identity)
+                        GameObject island = Instantiate(item.prefab, trackedImage.transform.position, trackedImage.transform.rotation);
+
+                        // 2. Pasang sebagai child dari marker
+                        island.transform.SetParent(trackedImage.transform);
+
+                        // 3. PAKSA ROTASI AGAR BERDIRI
+                        // Kita putar 90 derajat pada sumbu X agar prefab "bangun" dari posisi tiduran
+                        island.transform.localRotation = Quaternion.Euler(-90, 180, 0);
+
+                        Debug.Log($"[AR] Pulau {name} sekarang sudah berdiri tegak.");
                     }
                 }
             }
         }
 
-        // === 2. Logika untuk marker yang UPDATE (misal tracking lost/found) ===
+        // 2. UPDATED (Sesuai kode lama kamu)
         foreach (var trackedImage in eventArgs.updated)
         {
             bool isVisible = trackedImage.trackingState == TrackingState.Tracking;
             foreach (Transform child in trackedImage.transform)
-            {
                 child.gameObject.SetActive(isVisible);
-            }
         }
 
-        // === 3. Logika untuk marker yang HILANG (Removed) --- SOLUSI FINAL CS8121
-        // Mendefinisikan secara eksplisit KeyValuePair untuk mengatasi error casting/pattern matching
+        // 3. REMOVED (Sesuai kode lama kamu - Solusi CS8121)
         foreach (KeyValuePair<TrackableId, ARTrackedImage> kvp in eventArgs.removed)
         {
-            ARTrackedImage trackedImage = kvp.Value; // Ambil Value (ARTrackedImage)
-
-            // Hapus dari List
+            ARTrackedImage trackedImage = kvp.Value;
             currentlyTrackedImages.Remove(trackedImage);
-
-            // Hancurkan objek 3D dari scene
             if (trackedImage.transform != null && trackedImage.transform.childCount > 0)
-            {
                 Destroy(trackedImage.transform.GetChild(0).gameObject);
-            }
-            Debug.Log($"[AR Tracker] Removed: {trackedImage.referenceImage.name}. Total tracked: {currentlyTrackedImages.Count}");
         }
 
-        // --- 4. Cek Kondisi dan Kirim Data ---
-
-        if (currentlyTrackedImages.Count == requiredCount && !codesSent)
+        // 4. CHECK & SEND (Gunakan Count biasa agar deteksi lebih 'sensitif' seperti kode lama)
+        if (currentlyTrackedImages.Count >= requiredCount && !codesSent)
         {
             DetectAndSendCodes();
             codesSent = true;
@@ -124,32 +128,43 @@ public class MultiImageTracker : MonoBehaviour
         }
     }
 
-    // --- Fungsi Pengurutan dan HTTP POST ---
-
     private void DetectAndSendCodes()
     {
-        // 1. Urutkan berdasarkan posisi X (World Position Horizontal)
+        if (Camera.main == null) return;
+
+        Camera cam = Camera.main;
+
+        // Lakukan sorting berdasarkan posisi horizontal di layar (X)
+        // Tidak peduli HP miring/horizontal, sisi kiri layar tetap X terkecil
         var sortedImages = currentlyTrackedImages
-            .OrderBy(image => image.transform.position.x)
+            .OrderBy(image =>
+            {
+                Vector3 screenPos = cam.WorldToScreenPoint(image.transform.position);
+                return screenPos.x;
+            })
             .ToList();
 
-        // 2. Kumpulkan nama batik (codes) yang sudah diurutkan
-        List<string> codesToSend = new List<string>();
-        foreach (var trackedImage in sortedImages)
+        List<string> codesList = new List<string>();
+        foreach (var img in sortedImages)
         {
-            codesToSend.Add(trackedImage.referenceImage.name);
+            codesList.Add(img.referenceImage.name);
         }
 
-        // 3. Buat objek dan string JSON
-        CodesData data = new CodesData { codes = codesToSend };
-        string json = JsonUtility.ToJson(data);
+        string finalCode = string.Join(",", codesList);
 
-        Debug.Log($"[Batik AR] Codes terdeteksi dan diurutkan: {json}");
+        // Log ini akan membantumu melihat urutan di terminal saat HP miring
+        Debug.Log($"[Batik AR] HP Orientation: {Input.deviceOrientation}, Order: {finalCode}");
 
-        // 4. Kirim HTTP POST
-        StartCoroutine(SendPostRequest(json));
+        CodesData data = new CodesData
+        {
+            code = finalCode,
+            npm = PlayerPrefs.GetString("npm", "unknown"),
+            name = PlayerPrefs.GetString("fullName", "unknown")
+        };
+
+        PlayerPrefs.SetString("lastPatternCode", finalCode);
+        StartCoroutine(SendPostRequest(JsonUtility.ToJson(data)));
     }
-
 
     IEnumerator SendPostRequest(string jsonBody)
     {
@@ -164,15 +179,14 @@ public class MultiImageTracker : MonoBehaviour
 
             if (request.result != UnityWebRequest.Result.Success)
             {
-                Debug.LogError($"[Batik AR] HTTP Error: {request.error}");
-                // Saat error, tampilkan prefab error_text_prefab.glb
+                Debug.LogError($"Error: {request.error}");
+                _statusLabel.text = "Error: " + request.error;
                 ShowErrorPrefab();
             }
             else
             {
-                Debug.Log($"[Batik AR] HTTP POST Success! Response: {request.downloadHandler.text}");
-
-                // Saat berhasil, kita bisa menampilkan notifikasi atau efek di sini
+                Debug.Log("POST Success!");
+                _leaderboardButton.style.display = DisplayStyle.Flex;
             }
         }
     }

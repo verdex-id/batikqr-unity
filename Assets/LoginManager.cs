@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements; // Wajib ada
+using UnityEngine.SceneManagement;
 using System.Collections;
 
 public class LoginManager : MonoBehaviour
@@ -31,10 +32,24 @@ public class LoginManager : MonoBehaviour
         string npm = _npmField.value;
         string fullName = _fullNameField.value;
 
+        _statusLabel.text = "";
+        _statusLabel.style.display = DisplayStyle.None; // Sembunyikan pesan error dulu
+
+        if (string.IsNullOrEmpty(npm) || string.IsNullOrEmpty(fullName))
+        {
+            Debug.Log("NPM atau Nama Lengkap tidak boleh kosong!");
+            _statusLabel.text = "NPM atau Nama Lengkap tidak boleh kosong!";
+            _statusLabel.style.display = DisplayStyle.Flex; // Tampilkan pesan error
+            return;
+        }
+
         Debug.Log($"Mencoba login sebagai: {npm}, {fullName}");
 
         SaveToLocalStorage(npm, fullName);
         StartCoroutine(ShowSuccessMessage("Login Berhasil!"));
+
+        // Setelah login berhasil, navigate ke scan screen
+        SceneManager.LoadScene(1);
     }
 
     private void SaveToLocalStorage(string npm, string fullName)
