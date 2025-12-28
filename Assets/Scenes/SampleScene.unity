@@ -210,9 +210,12 @@ MonoBehaviour:
     prefab: {fileID: 4411112604050919284, guid: ec5bdb361e8bb6d4195c3cbc8c892f35, type: 3}
   - imageName: 9
     prefab: {fileID: 4469604130942619459, guid: 3e98f66c275e7154f8110e9079b8f76a, type: 3}
-  backendURL: https://batikqr.verdex.id/pattern/scan
-  requiredCount: 3
+  podiumPrefab: {fileID: 808794640058143569, guid: d64e5fefbf0f08a43a6b93fa459046c8, type: 3}
   errorPrefab: {fileID: 4952419679799190442, guid: cd8ccc74a35ccb04082a21066334552f, type: 3}
+  uiDocument: {fileID: 720864063}
+  backendURL: https://batikqr.verdex.id/pattern/scan
+  leaderboardURL: https://batikqr.verdex.id/pattern/leaderboard
+  requiredCount: 3
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0

@@ -381,7 +381,8 @@
             "name": "RectTransform",
             "scenes": [
               "Assets/Scenes/LeaderboardScene.unity",
-              "Assets/Scenes/LoginScene.unity"
+              "Assets/Scenes/LoginScene.unity",
+              "Assets/Scenes/SampleScene.unity"
             ],
             "dependencyType": 0,
             "icon": null
@@ -970,7 +971,7 @@
           {
             "name": "Collider",
             "scenes": [],
-            "dependencyType": 0,
+            "dependencyType": 1,
             "icon": null
           },
           {

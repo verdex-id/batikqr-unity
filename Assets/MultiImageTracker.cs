@@ -1,43 +1,54 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using UnityEngine;
+using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
-using System.Collections;
-using UnityEngine.Networking;
-using System.Text;
-using UnityEngine.UIElements; // Ditambahkan untuk UI
-using UnityEngine.SceneManagement;
+using TMPro;
 
 [RequireComponent(typeof(ARTrackedImageManager))]
 public class MultiImageTracker : MonoBehaviour
 {
-    [System.Serializable]
-    public class CodesData
-    {
-        public string code; // Format: "279"
-        public string npm;
-        public string name;
-    }
+    #region Data Structures
+    [Serializable]
+    public class CodesData { public string code; public string npm; public string name; }
 
-    [System.Serializable]
-    public struct MarkerPrefab
-    {
-        public string imageName;
-        public GameObject prefab;
-    }
+    [Serializable]
+    public class LeaderboardEntry { public string npm; public string name; public long timestamp; }
 
+    [Serializable]
+    public class LeaderboardResponse { public bool success; public List<LeaderboardEntry> leaderboard; }
+
+    [Serializable]
+    public struct MarkerPrefab { public string imageName; public GameObject prefab; }
+    #endregion
+
+    [Header("Prefabs")]
     public List<MarkerPrefab> markerPrefabs = new List<MarkerPrefab>();
-    private ARTrackedImageManager trackedImageManager;
-    private List<ARTrackedImage> currentlyTrackedImages = new List<ARTrackedImage>();
+    public GameObject podiumPrefab;
+    public GameObject errorPrefab;
+    public UIDocument uiDocument;
 
     [Header("Backend Settings")]
     public string backendURL = "https://batikqr.verdex.id/pattern/scan";
+    public string leaderboardURL = "https://batikqr.verdex.id/pattern/leaderboard";
     public int requiredCount = 3;
+
+    private ARTrackedImageManager trackedImageManager;
+    private List<ARTrackedImage> currentlyTrackedImages = new List<ARTrackedImage>();
+    private GameObject activePodium;
     private bool codesSent = false;
+    private float _startTime;
+    private bool _timerStarted = false;
+    private Coroutine _refreshCoroutine;
 
     [Header("UI Settings")]
-    public GameObject errorPrefab;
     private VisualElement _root;
     private Button _leaderboardButton;
     private Label _statusLabel;
@@ -46,18 +57,14 @@ public class MultiImageTracker : MonoBehaviour
 
     void OnEnable()
     {
-        // Inisialisasi UI dengan aman
-        var uiDoc = GetComponent<UIDocument>();
-        if (uiDoc == null)
+        if (uiDocument != null)
         {
-            uiDoc = GameObject.FindAnyObjectByType<UIDocument>();
-        }
-
-        if (uiDoc != null)
-        {
-            _root = uiDoc.rootVisualElement;
+            _root = uiDocument.rootVisualElement;
+            // Gunakan null-coalescing untuk mencegah error saat inisialisasi
             _leaderboardButton = _root.Q<Button>("LeaderboardButton");
             _statusLabel = _root.Q<Label>("StatusLabel");
+
+            if (_leaderboardButton != null) _leaderboardButton.style.display = DisplayStyle.None;
         }
 
         if (trackedImageManager != null)
@@ -68,38 +75,31 @@ public class MultiImageTracker : MonoBehaviour
     {
         if (trackedImageManager != null)
             trackedImageManager.trackablesChanged.RemoveListener(OnChanged);
+        if (_refreshCoroutine != null) StopCoroutine(_refreshCoroutine);
     }
 
     void OnChanged(ARTrackablesChangedEventArgs<ARTrackedImage> eventArgs)
     {
-        // 1. ADDED (Sesuai kode lama kamu)
         foreach (var trackedImage in eventArgs.added)
         {
             if (!currentlyTrackedImages.Contains(trackedImage))
             {
+                if (!_timerStarted) { _startTime = Time.time; _timerStarted = true; }
                 currentlyTrackedImages.Add(trackedImage);
+
                 string name = trackedImage.referenceImage.name;
                 foreach (var item in markerPrefabs)
                 {
                     if (item.imageName == name && trackedImage.transform.childCount == 0)
                     {
-                        // 1. Buat objek tanpa rotasi dulu (identity)
                         GameObject island = Instantiate(item.prefab, trackedImage.transform.position, trackedImage.transform.rotation);
-
-                        // 2. Pasang sebagai child dari marker
                         island.transform.SetParent(trackedImage.transform);
-
-                        // 3. PAKSA ROTASI AGAR BERDIRI
-                        // Kita putar 90 derajat pada sumbu X agar prefab "bangun" dari posisi tiduran
                         island.transform.localRotation = Quaternion.Euler(-90, 180, 0);
-
-                        Debug.Log($"[AR] Pulau {name} sekarang sudah berdiri tegak.");
                     }
                 }
             }
         }
 
-        // 2. UPDATED (Sesuai kode lama kamu)
         foreach (var trackedImage in eventArgs.updated)
         {
             bool isVisible = trackedImage.trackingState == TrackingState.Tracking;
@@ -107,53 +107,65 @@ public class MultiImageTracker : MonoBehaviour
                 child.gameObject.SetActive(isVisible);
         }
 
-        // 3. REMOVED (Sesuai kode lama kamu - Solusi CS8121)
-        foreach (KeyValuePair<TrackableId, ARTrackedImage> kvp in eventArgs.removed)
+        foreach (var kvp in eventArgs.removed)
         {
-            ARTrackedImage trackedImage = kvp.Value;
-            currentlyTrackedImages.Remove(trackedImage);
-            if (trackedImage.transform != null && trackedImage.transform.childCount > 0)
-                Destroy(trackedImage.transform.GetChild(0).gameObject);
+            currentlyTrackedImages.Remove(kvp.Value);
+            if (kvp.Value.transform.childCount > 0) Destroy(kvp.Value.transform.GetChild(0).gameObject);
         }
 
-        // 4. CHECK & SEND (Gunakan Count biasa agar deteksi lebih 'sensitif' seperti kode lama)
         if (currentlyTrackedImages.Count >= requiredCount && !codesSent)
         {
-            DetectAndSendCodes();
             codesSent = true;
-        }
-        else if (currentlyTrackedImages.Count < requiredCount)
-        {
-            codesSent = false;
+            DetectAndSendCodes();
         }
     }
 
     private void DetectAndSendCodes()
     {
-        if (Camera.main == null) return;
-
         Camera cam = Camera.main;
-
-        // Lakukan sorting berdasarkan posisi horizontal di layar (X)
-        // Tidak peduli HP miring/horizontal, sisi kiri layar tetap X terkecil
-        var sortedImages = currentlyTrackedImages
-            .OrderBy(image =>
-            {
-                Vector3 screenPos = cam.WorldToScreenPoint(image.transform.position);
-                return screenPos.x;
-            })
-            .ToList();
-
-        List<string> codesList = new List<string>();
-        foreach (var img in sortedImages)
+        if (cam == null)
         {
-            codesList.Add(img.referenceImage.name);
+            Debug.LogError("Main Camera tidak ditemukan!");
+            return;
         }
 
-        string finalCode = string.Join(",", codesList);
+        // Filter null untuk mencegah NullReference saat sorting
+        var validImages = currentlyTrackedImages.Where(img => img != null).ToList();
+        if (validImages.Count < requiredCount) return;
 
-        // Log ini akan membantumu melihat urutan di terminal saat HP miring
-        Debug.Log($"[Batik AR] HP Orientation: {Input.deviceOrientation}, Order: {finalCode}");
+        var sorted = validImages
+            .OrderBy(img => cam.WorldToScreenPoint(img.transform.position).x)
+            .ToList();
+
+        string finalCode = string.Join(",", sorted.Select(img => img.referenceImage.name));
+        float duration = Time.time - _startTime;
+        string timeStr = duration < 1f ? duration.ToString("F1") + "s" : Mathf.RoundToInt(duration).ToString() + "s";
+
+        // Spawn Podium di Marker Tengah (Index 1 dari 3)
+        if (podiumPrefab != null && activePodium == null)
+        {
+            Transform centerMarker = sorted[1].transform;
+
+            // 1. Spawn podium
+            activePodium = Instantiate(podiumPrefab, centerMarker.position, Quaternion.identity);
+
+            // 2. Set parent agar ikut bergerak kalau marker geser
+            activePodium.transform.SetParent(centerMarker);
+
+            // 3. Reset posisi ke tengah marker (naikkan 0.01f agar tidak flicker)
+            activePodium.transform.localPosition = new Vector3(0, 0.1f, 0);
+
+            // 4. LOGIKA LOOK AT (Paling Akurat)
+            // Ambil posisi kamera, tapi samakan tingginya dengan podium agar tidak nunduk
+            Vector3 targetPos = Camera.main.transform.position;
+            targetPos.y = activePodium.transform.position.y;
+
+            // Paksa podium menghadap kamera (World Space)
+            activePodium.transform.LookAt(targetPos);
+
+            // 5. Koreksi rotasi 90 derajat karena model podium dibuat menghadap sumbu X positif
+            activePodium.transform.Rotate(0, -90, 0);
+        }
 
         CodesData data = new CodesData
         {
@@ -163,10 +175,13 @@ public class MultiImageTracker : MonoBehaviour
         };
 
         PlayerPrefs.SetString("lastPatternCode", finalCode);
-        StartCoroutine(SendPostRequest(JsonUtility.ToJson(data)));
+
+        string jsonToSend = JsonUtility.ToJson(data);
+        Debug.Log("<color=yellow>[Batik AR] Payload: </color>" + jsonToSend);
+        StartCoroutine(SendPostRequest(jsonToSend, finalCode));
     }
 
-    IEnumerator SendPostRequest(string jsonBody)
+    IEnumerator SendPostRequest(string jsonBody, string currentCode)
     {
         using (UnityWebRequest request = new UnityWebRequest(backendURL, "POST"))
         {
@@ -177,76 +192,133 @@ public class MultiImageTracker : MonoBehaviour
 
             yield return request.SendWebRequest();
 
-            if (request.result != UnityWebRequest.Result.Success)
+            if (request.result == UnityWebRequest.Result.Success)
             {
-                Debug.LogError($"Error: {request.error}");
-                _statusLabel.text = "Error: " + request.error;
-                ShowErrorPrefab();
+                Debug.Log("Scan Sukses!");
+                if (_leaderboardButton != null)
+                {
+                    _leaderboardButton.style.display = DisplayStyle.Flex;
+                    _leaderboardButton.SetEnabled(true);
+                    _leaderboardButton.visible = true;
+                    Debug.Log("<color=cyan>[Batik AR] Button Leaderboard Set to Visible</color>");
+                }
+                else
+                {
+                    Debug.LogError("[Batik AR] Tombol 'LeaderboardButton' tidak ditemukan di UIDocument!");
+                }
+
+                if (_refreshCoroutine != null) StopCoroutine(_refreshCoroutine);
+                _refreshCoroutine = StartCoroutine(RefreshPodiumRoutine(currentCode));
             }
             else
             {
-                Debug.Log("POST Success!");
-                _leaderboardButton.style.display = DisplayStyle.Flex;
+                codesSent = false; // Reset agar bisa coba lagi
+                Debug.LogError($"[Batik AR] HTTP Error: {request.error}");
+                _statusLabel.text = "Error: " + request.error;
+                // ShowErrorPrefab();
+
+                yield return new WaitForSeconds(3f);
+                _statusLabel.text = "";
             }
         }
     }
 
-    private void ClearAllTrackedObjects()
+    IEnumerator RefreshPodiumRoutine(string codes)
     {
-        // Loop melalui semua gambar yang saat ini dilacak (yang seharusnya masih aktif)
-        foreach (var trackedImage in currentlyTrackedImages)
+        while (true)
         {
-            // Hancurkan semua anak objek (prefab 3D) di bawah transform ARTrackedImage
-            if (trackedImage.transform != null)
+            using (UnityWebRequest request = UnityWebRequest.Get($"{leaderboardURL}?codes={codes}"))
             {
-                foreach (Transform child in trackedImage.transform)
+                yield return request.SendWebRequest();
+                if (request.result == UnityWebRequest.Result.Success)
                 {
-                    Destroy(child.gameObject);
+                    LeaderboardResponse res = JsonUtility.FromJson<LeaderboardResponse>(request.downloadHandler.text);
+                    if (res != null && res.success) UpdatePodiumVisuals(res.leaderboard);
                 }
             }
-
-            // Opsional: Hapus ARTrackedImage dari list jika Anda ingin skrip berhenti 
-            // memprosesnya untuk sementara waktu, tapi ini bisa mengganggu ARFoundation.
-            // Cukup biarkan list tetap ada, dan hanya anak objeknya yang dihancurkan.
+            yield return new WaitForSeconds(1f);
         }
+    }
 
-        // Karena objek anak sudah dihancurkan, sekarang kita set kembali codesSent = false
-        // agar pengguna bisa mencoba scan lagi setelah error diatasi/prefab error hilang.
+    private void UpdatePodiumVisuals(List<LeaderboardEntry> entries)
+    {
+        if (activePodium == null) return;
+
+        // Urutkan berdasarkan waktu tercepat
+        var sortedEntries = entries.OrderBy(e => e.timestamp).ToList();
+
+        for (int i = 0; i < 3; i++)
+        {
+            string targetName = $"Top{i + 1}";
+            Transform labelT = GetChildRecursive(activePodium.transform, targetName);
+
+            if (labelT != null)
+            {
+                // Gunakan TMP_Text agar kompatibel dengan TextMeshPro - Text (UI) maupun 3D
+                TMP_Text tmpText = labelT.GetComponent<TMP_Text>();
+
+                if (tmpText != null)
+                {
+                    if (i < sortedEntries.Count)
+                    {
+                        string shortName = sortedEntries[i].name.Length > 8
+                            ? sortedEntries[i].name.Substring(0, 8) + ".."
+                            : sortedEntries[i].name;
+
+                        tmpText.text = $"{shortName}\n{sortedEntries[i].npm}";
+                    }
+                    else
+                    {
+                        tmpText.text = "Waiting...";
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"[Batik AR] Objek {targetName} ditemukan tapi tidak punya komponen TextMeshPro!");
+                }
+            }
+        }
+    }
+
+    // Fungsi ini penting untuk mencari objek Top1, Top2, Top3 jika mereka ada di dalam folder anak
+    private Transform GetChildRecursive(Transform parent, string name)
+    {
+        foreach (Transform child in parent)
+        {
+            if (child.name == name) return child;
+            Transform result = GetChildRecursive(child, name);
+            if (result != null) return result;
+        }
+        return null;
+    }
+
+    private void ClearAllTrackedObjects()
+    {
+        if (activePodium != null) Destroy(activePodium);
+        if (_refreshCoroutine != null) StopCoroutine(_refreshCoroutine);
+
+        foreach (var trackedImage in currentlyTrackedImages)
+        {
+            if (trackedImage != null && trackedImage.transform != null)
+            {
+                foreach (Transform child in trackedImage.transform)
+                    Destroy(child.gameObject);
+            }
+        }
         codesSent = false;
-
-        Debug.Log("[Batik AR] Semua Prefab Marker 3D telah dibersihkan.");
+        _timerStarted = false;
     }
 
     private void ShowErrorPrefab()
     {
         ClearAllTrackedObjects();
-        // Pastikan errorPrefab sudah di-set di Inspector
-        if (errorPrefab == null)
+        if (errorPrefab != null)
         {
-            Debug.LogError("[Batik AR] Error Prefab belum diset di Inspector!");
-            return;
+            // Hapus error lama jika ada
+            GameObject[] oldErrors = GameObject.FindGameObjectsWithTag("ErrorText");
+            foreach (var g in oldErrors) Destroy(g);
+
+            Instantiate(errorPrefab, Vector3.zero, Quaternion.identity);
         }
-
-        // Hancurkan semua prefab error yang mungkin sudah ada agar tidak menumpuk
-        // Gunakan Tag "ErrorText" pada prefab error Anda untuk membuatnya mudah dicari
-        var existingErrors = GameObject.FindGameObjectsWithTag("ErrorText");
-        foreach (var error in existingErrors)
-        {
-            Destroy(error);
-        }
-
-        // Anda bisa memilih untuk memunculkannya di tengah layar kamera atau di scene
-        // Contoh: Memunculkannya di World Origin (0,0,0) atau di posisi lain.
-        // Jika Anda ingin menampilkannya sebagai Canvas UI, Anda perlu menyesuaikan kode ini.
-        GameObject errorInstance = Instantiate(errorPrefab, Vector3.zero, Quaternion.identity);
-
-        // Atur agar objek error tetap ada di scene meskipun marker hilang
-        // Jika Anda ingin menargetkan posisi relatif ke kamera AR, Anda bisa menggunakan 
-        // Camera.main.transform.position atau memanggil ARSessionOrigin.camera.transform.position
-
-        Debug.Log("[Batik AR] Menampilkan Error Prefab.");
-
-        // Opsional: Hapus prefab error setelah beberapa detik
-        // Destroy(errorInstance, 5.0f); 
     }
 }
